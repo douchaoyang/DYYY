@@ -1,34 +1,6 @@
 name: build deb
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - '*.h'
-      - '*.m'
-      - '*.mm'
-      - '*.x'
-      - '*.xm'
-      - '*.c'
-      - '*.cc'
-      - '*.cpp'
-      - '*.s'
-      - '*.S'
-      - 'Sources/**/*.h'
-      - 'Sources/**/*.m'
-      - 'Sources/**/*.mm'
-      - 'Sources/**/*.x'
-      - 'Sources/**/*.xm'
-      - 'Sources/**/*.c'
-      - 'Sources/**/*.cc'
-      - 'Sources/**/*.cpp'
-      - 'Sources/**/*.s'
-      - 'Sources/**/*.S'
-      - 'DYYY.plist'
-      - 'control'
-      - 'Makefile'
-      - 'layout/**'
   workflow_dispatch:
 
 permissions:
