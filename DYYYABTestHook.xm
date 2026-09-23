@@ -1,5 +1,6 @@
 #import "DYYYABTestHook.h"
 #import "DYYYConstants.h"
+#import "DYYYCrashLogger.h"
 #import "DYYYUtils.h"
 #import <objc/runtime.h>
 
@@ -480,6 +481,7 @@ static void DYYYApplyTabBarHeightToCurrentABTestDataIfNeeded(void) {
 %end
 
 %ctor {
+    DYYYCrashLoggerMark("abtest.ctor");
     // 预初始化队列以避免早期访问为 NULL
     DYYYABTestQueue();
 

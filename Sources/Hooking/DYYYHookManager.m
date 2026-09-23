@@ -1,4 +1,5 @@
 #import "DYYYHookManager.h"
+#import "DYYYCrashLogger.h"
 
 #import "DYYYFeedTagHooks.h"
 #import "DYYYFPSOverlay.h"
@@ -76,7 +77,16 @@ static void DYYYStartHookPhase(DYYYHookPhase phase, atomic_bool *started) {
             continue;
         }
         uint64_t installStart = mach_continuous_time();
-        descriptor.installer();
+        DYYYCrashLoggerMark(descriptor.identifier);
+        @try {
+            descriptor.installer();
+        } @catch (NSException *exception) {
+            NSLog(@"[DYYY][HookManager] installer crashed identifier=%s name=%@ reason=%@",
+                  descriptor.identifier,
+                  exception.name,
+                  exception.reason);
+            @throw;
+        }
         double duration = DYYYMillisecondsBetween(installStart, mach_continuous_time());
         installedCount++;
         if (duration >= 8.0) {

@@ -64,6 +64,7 @@ DYYY_FILES = DYYY.xm \
 	Sources/UI/DYYYToast.m \
 	Sources/Media/DYYYManager.m \
 	Sources/Core/DYYYUtils.m \
+	Sources/Core/DYYYCrashLogger.m \
 	Sources/Features/DYYYLoginBypassManager.m \
 	Sources/Features/DYYYLoginRepairHooks.m \
 	Sources/Features/DYYYPrivacyRecordUploadGuard.m \

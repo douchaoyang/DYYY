@@ -7,6 +7,7 @@
 #import "DYYYManager.h"
 #import "DYYYToast.h"
 #import "DYYYUtils.h"
+#import "DYYYCrashLogger.h"
 
 static NSString *DYYYLongPressFilterUserTokenFromStoredEntry(NSString *entry) {
     NSString *token = [entry stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
@@ -1501,6 +1502,7 @@ static void DYYYLongPressPresentFilterKeywordPanel(NSString *descText, NSString 
 %end
 
 %ctor {
+    DYYYCrashLoggerMark("longpress.ctor");
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"DYYYUserAgreementAccepted"]) {
         %init;
     }
@@ -1574,6 +1576,7 @@ static void DYYYLongPressPresentFilterKeywordPanel(NSString *descText, NSString 
 %end
 
 %ctor {
+    DYYYCrashLoggerMark("longpress.filter.ctor");
     Class ownerClass = objc_getClass("AWECommentLongPressPanelSwiftImpl.CommentLongPressPanelNormalSectionViewModel");
     if (ownerClass) {
         %init(DYYYFilterSetterGroup, HOOK_TARGET_OWNER_CLASS = ownerClass);

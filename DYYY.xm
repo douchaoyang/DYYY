@@ -27,6 +27,7 @@
 
 #import "AWMSafeDispatchTimer.h"
 #import "DYYYConstants.h"
+#import "DYYYCrashLogger.h"
 #import "DYYYFloatClearButton.h"
 #import "DYYYFloatSpeedButton.h"
 #import "DYYYLivePreStreamLayoutCoordinator.h"
@@ -17573,7 +17574,11 @@ static NSString *const kHideRecentUsersKey = @"DYYYHideSidebarRecentUsers";
 %end
 
 %ctor {
+    DYYYCrashLoggerInstall();
+    DYYYCrashLoggerMark("ctor.start");
+
     [DYYYLoginBypassManager configureInitialStateIfNeeded];
+    DYYYCrashLoggerMark("ctor.loginBypassConfigured");
 
     [[NSUserDefaults standardUserDefaults] registerDefaults:@{
         DYYY_DISABLE_FEED_NOW_PLAYING_INFO_KEY : @NO,
@@ -17583,13 +17588,18 @@ static NSString *const kHideRecentUsersKey = @"DYYYHideSidebarRecentUsers";
         kDYYYEnableLoginBypassKey : @YES
     }];
 
+    DYYYCrashLoggerMark("ctor.defaultsRegistered");
+
     DYYYMigrateCombinedHDRModeIfNeeded();
     DYYYMigrateScaleAndSizeSettingsIfNeeded();
     DYYYMigrateScaleAndSizeSettingsV2IfNeeded();
+    DYYYCrashLoggerMark("ctor.migrationsDone");
 
     // 仅在构造阶段准备 C Hook；UIKit 与宿主帧率对象延后至 App 激活后访问。
     DYYYHookManagerStartLoaderSafePhase();
+    DYYYCrashLoggerMark("ctor.loaderSafe");
     DYYYStartHideFeedAnchorHookInstaller();
+    DYYYCrashLoggerMark("ctor.hideFeedAnchor");
 
     Class plusButtonOverlayClass = objc_getClass("AWENormalModeTabBarPlusButton");
     if (plusButtonOverlayClass && class_getInstanceMethod(plusButtonOverlayClass, @selector(addStickerImageViewAnimationView))) {
@@ -17610,7 +17620,9 @@ static NSString *const kHideRecentUsersKey = @"DYYYHideSidebarRecentUsers";
     }
 
     %init(DYYYLoginBypassCore);
+    DYYYCrashLoggerMark("ctor.loginBypassCore");
     DYYYHookManagerStartAfterLoginCorePhase();
+    DYYYCrashLoggerMark("ctor.afterLoginCore");
 
     Class loginListenerClass = objc_getClass("AWEUserServiceListener");
     if (loginListenerClass && class_getInstanceMethod(loginListenerClass, @selector(didFinishLoginWithUid:))) {
@@ -17680,6 +17692,7 @@ static NSString *const kHideRecentUsersKey = @"DYYYHideSidebarRecentUsers";
     if (!DYYYGetBool(@"DYYYDisableSettingsGesture")) {
         %init(DYYYSettingsGesture);
     }
+    DYYYCrashLoggerMark("ctor.beforeAgreement");
     if (DYYYGetBool(@"DYYYUserAgreementAccepted")) {
         NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
         isFloatSpeedButtonEnabled = [defaults boolForKey:@"DYYYEnableFloatSpeedButton"];
@@ -17763,4 +17776,5 @@ static NSString *const kHideRecentUsersKey = @"DYYYHideSidebarRecentUsers";
         }
 
     }
+    DYYYCrashLoggerMark("ctor.done");
 }
