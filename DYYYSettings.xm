@@ -62,6 +62,7 @@ static NSString *const kDYYYShowFPSOverlaySVGIconName = @"ic_fpsoverlay_dyyy_out
 static NSString *const kDYYYCommentPausePlaybackSettingIdentifier = @"DYYYCommentPausePlayback";
 static NSString *const kDYYYCommentPausePlaybackSVGIconName = @"ic_commentpause_dyyy_outlined_20";
 static NSString *const kDYYYAlbumMediaDescriptionSettingIdentifier = DYYY_ALBUM_MEDIA_DESCRIPTION_KEY;
+static NSString *const kDYYYSaveToSandboxSettingIdentifier = DYYY_SAVE_TO_SANDBOX_KEY;
 static NSString *const kDYYYLoginBypassSVGIconName = @"ic_unlocknew_outlined_20";
 static NSString *const kDYYYHideRecommendAppDownloadSettingIdentifier = @"DYYYHideRecommendAppDownload";
 static NSString *const kDYYYMiniProgramJumpingAdsSettingIdentifier = @"DYYYEnableMiniProgramJumpingAds";
@@ -4230,6 +4231,14 @@ void showDYYYSettingsVC(UIViewController *rootVC, BOOL hasAgreed) {
               @"imageName" : @"ic_cloudarrowdown_outlined_20"
           },
           @{
+              @"identifier" : kDYYYSaveToSandboxSettingIdentifier,
+              @"title" : @"保存到本地目录",
+              @"subTitle" : @"打开后保存到抖音 Documents/dyyydl，关闭则仍保存到相册",
+              @"detail" : @"",
+              @"cellType" : @6,
+              @"imageName" : @"ic_cloudarrowdown_outlined_20"
+          },
+          @{
               @"identifier" : @"DYYYInterfaceDownload",
               @"title" : @"接口解析保存媒体",
               @"subTitle" : @"填入自定义的解析接口，标准格式请查阅 Github 仓库内的 README 文件",
@@ -4311,6 +4320,12 @@ void showDYYYSettingsVC(UIViewController *rootVC, BOOL hasAgreed) {
           if ([item.identifier isEqualToString:kDYYYAlbumMediaDescriptionSettingIdentifier] &&
               ![[NSUserDefaults standardUserDefaults] objectForKey:kDYYYAlbumMediaDescriptionSettingIdentifier]) {
               [DYYYSettingsHelper setUserDefaults:@NO forKey:kDYYYAlbumMediaDescriptionSettingIdentifier];
+              item.isSwitchOn = NO;
+          }
+
+          if ([item.identifier isEqualToString:kDYYYSaveToSandboxSettingIdentifier] &&
+              ![[NSUserDefaults standardUserDefaults] objectForKey:kDYYYSaveToSandboxSettingIdentifier]) {
+              [DYYYSettingsHelper setUserDefaults:@NO forKey:kDYYYSaveToSandboxSettingIdentifier];
               item.isSwitchOn = NO;
           }
 

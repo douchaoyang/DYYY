@@ -35,6 +35,9 @@
 // 保存媒体到相册时是否写入作者、作品链接、文案和发布时间
 #define DYYY_ALBUM_MEDIA_DESCRIPTION_KEY @"DYYYAlbumMediaDescription"
 
+// 打开后把媒体保存到宿主沙盒 Documents/dyyydl，关闭则仍写入系统相册
+#define DYYY_SAVE_TO_SANDBOX_KEY @"DYYYSaveToSandbox"
+
 // 快捷倍速 / 一键清屏按钮：开启后才按四边固定边距贴边拖动；默认关闭
 #define DYYY_SPEED_BUTTON_STICK_TO_EDGE_KEY @"DYYYSpeedButtonStickToEdge"
 #define DYYY_CLEAR_BUTTON_STICK_TO_EDGE_KEY @"DYYYClearButtonStickToEdge"
