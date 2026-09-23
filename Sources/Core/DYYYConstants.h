@@ -6,6 +6,9 @@
 
 #define DYYY_VERSION @"2.3-1"
 
+// 是否把启动阶段和闪退信息写入宿主沙盒 Documents/DYYY/crash.log；0 关闭，1 打开
+#define DYYY_CRASH_LOG_ENABLED 0
+
 // 默认的远程 ABTest 配置地址
 #define DYYY_DEFAULT_ABTEST_URL @"https://github.com/Nathalie-Annis/AWEABTestDataPatch/releases/latest/download/ABTestDataPatch_A.json"
 

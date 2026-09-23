@@ -216,6 +216,10 @@ static void DYYYCrashLoggerMarkLaunchSurvived(NSNotification *notification) {
 }
 
 void DYYYCrashLoggerMark(const char *stage) {
+#if !DYYY_CRASH_LOG_ENABLED
+    (void)stage;
+    return;
+#endif
     if (!stage) {
         return;
     }
@@ -233,6 +237,9 @@ void DYYYCrashLoggerMark(const char *stage) {
 }
 
 void DYYYCrashLoggerInstall(void) {
+#if !DYYY_CRASH_LOG_ENABLED
+    return;
+#endif
     bool expected = false;
     if (!atomic_compare_exchange_strong_explicit(&gDYYYCrashLoggerInstalled,
                                                  &expected,
@@ -284,6 +291,8 @@ void DYYYCrashLoggerInstall(void) {
 }
 
 __attribute__((constructor(101))) static void DYYYCrashLoggerConstructor(void) {
+#if DYYY_CRASH_LOG_ENABLED
     DYYYCrashLoggerInstall();
     DYYYCrashLoggerMark("dylib.loaded");
+#endif
 }

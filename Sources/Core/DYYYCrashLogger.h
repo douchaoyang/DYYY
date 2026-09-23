@@ -4,7 +4,8 @@
 extern "C" {
 #endif
 
-/// 尽早安装未捕获异常和致命信号记录。写入宿主沙盒 Documents/DYYY/crash.log。
+/// 尽早安装未捕获异常和致命信号记录。由 DYYY_CRASH_LOG_ENABLED 控制，默认关闭。
+/// 打开后写入宿主沙盒 Documents/DYYY/crash.log。
 void DYYYCrashLoggerInstall(void);
 
 /// 记录启动阶段，闪退时会一起写进 crash.log，用来判断死在哪一步。
