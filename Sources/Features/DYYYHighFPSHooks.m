@@ -8,7 +8,6 @@
 #import <objc/message.h>
 #import <objc/runtime.h>
 #import <stdatomic.h>
-#import <substrate.h>
 
 /*
  * 基于对 Aweme 39.8 解包的静态证据（.ipa_extract_3980）：
@@ -22,7 +21,7 @@
 static NSString *const kDYYYCADisableMinimumFrameDurationOnPhoneKey = @"CADisableMinimumFrameDurationOnPhone";
 
 static atomic_bool gDYYYHighFPSStarted = false;
-static atomic_bool gDYYYCFBundleHookInstalled = false;
+static atomic_bool gDYYYBundleHookInstalled = false;
 static atomic_bool gDYYYDegradeHookInstalled = false;
 static atomic_bool gDYYYLoadObserversInstalled = false;
 
@@ -34,10 +33,10 @@ static id gDYYYThermalObserver = nil;
 static id gDYYYPowerObserver = nil;
 
 static IMP gOrigSetDisableDegradeOperation = NULL;
+static IMP gOrigObjectForInfoDictionaryKey = NULL;
 typedef void (*DYYYVoidBoolIMP)(id, SEL, BOOL);
 typedef id (*DYYYObjectGetterIMP)(id, SEL);
-
-static CFTypeRef (*gOrigCFBundleGetValueForInfoDictionaryKey)(CFBundleRef, CFStringRef) = NULL;
+typedef id (*DYYYObjectForInfoDictionaryKeyIMP)(id, SEL, NSString *);
 
 static BOOL DYYYHighFPSEnabled(void) {
     return DYYYGetBoolCached(DYYY_ENABLE_HIGH_FPS_KEY);
@@ -178,26 +177,32 @@ static BOOL DYYYWriteMainBundleInfoPlistIfPossible(BOOL enabled) {
     return [data writeToFile:path atomically:YES];
 }
 
-static CFTypeRef DYYYCFBundleGetValueForInfoDictionaryKey(CFBundleRef bundle, CFStringRef key) {
-    // 门闩保持解锁，便于负载恢复后快速回到高刷；降档走宿主 degrade，不反复改写 plist。
-    if (DYYYHighFPSEnabled() && key &&
-        CFStringCompare(key, CFSTR("CADisableMinimumFrameDurationOnPhone"), 0) == kCFCompareEqualTo) {
-        return kCFBooleanTrue;
+static id DYYYNSBundleObjectForInfoDictionaryKey(NSBundle *self, SEL _cmd, NSString *key) {
+    // 用 NSBundle 方法替换，避免 MSHookFunction 打 dyld 共享缓存里的
+    // CFBundleGetValueForInfoDictionaryKey：TrollFools 注入下会 SIGBUS。
+    if (DYYYHighFPSEnabled() && self == [NSBundle mainBundle] &&
+        [key isKindOfClass:[NSString class]] &&
+        [key isEqualToString:kDYYYCADisableMinimumFrameDurationOnPhoneKey]) {
+        return @YES;
     }
-    if (gOrigCFBundleGetValueForInfoDictionaryKey) {
-        return gOrigCFBundleGetValueForInfoDictionaryKey(bundle, key);
-    }
-    return NULL;
+    DYYYObjectForInfoDictionaryKeyIMP original = (DYYYObjectForInfoDictionaryKeyIMP)gOrigObjectForInfoDictionaryKey;
+    return original ? original(self, _cmd, key) : nil;
 }
 
-static void DYYYInstallCFBundleProMotionHookIfNeeded(void) {
+static void DYYYInstallNSBundleProMotionHookIfNeeded(void) {
     bool expected = false;
-    if (!atomic_compare_exchange_strong(&gDYYYCFBundleHookInstalled, &expected, true)) {
+    if (!atomic_compare_exchange_strong(&gDYYYBundleHookInstalled, &expected, true)) {
         return;
     }
-    MSHookFunction((void *)CFBundleGetValueForInfoDictionaryKey,
-                   (void *)DYYYCFBundleGetValueForInfoDictionaryKey,
-                   (void **)&gOrigCFBundleGetValueForInfoDictionaryKey);
+    Method method = class_getInstanceMethod([NSBundle class], @selector(objectForInfoDictionaryKey:));
+    if (!method) {
+        NSLog(@"[DYYY][RuntimeHook][HighFPS] NSBundle objectForInfoDictionaryKey: 未找到");
+        return;
+    }
+    IMP previous = method_setImplementation(method, (IMP)DYYYNSBundleObjectForInfoDictionaryKey);
+    if (previous && previous != (IMP)DYYYNSBundleObjectForInfoDictionaryKey) {
+        gOrigObjectForInfoDictionaryKey = previous;
+    }
 }
 
 #pragma mark - AWEDisplayLinkDegradeManager
@@ -388,7 +393,7 @@ static void DYYYInstallLoadObserversIfNeeded(void) {
 
 static void DYYYApplyProMotionUnlock(BOOL enabled) {
     DYYYCaptureDiskProMotionKeyIfNeeded();
-    DYYYInstallCFBundleProMotionHookIfNeeded();
+    DYYYInstallNSBundleProMotionHookIfNeeded();
     BOOL mutated = DYYYMutateMainBundleInfoDictionary(enabled);
     BOOL written = DYYYWriteMainBundleInfoPlistIfPossible(enabled);
     id runtimeValue = [[NSBundle mainBundle] objectForInfoDictionaryKey:kDYYYCADisableMinimumFrameDurationOnPhoneKey];
@@ -431,7 +436,7 @@ void DYYYStartHighFPSHooks(void) {
         return;
     }
 
-    DYYYInstallCFBundleProMotionHookIfNeeded();
+    DYYYInstallNSBundleProMotionHookIfNeeded();
     DYYYInstallLoadObserversIfNeeded();
 
     if (DYYYHighFPSEnabled()) {
